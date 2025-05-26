@@ -24,14 +24,14 @@ interface User{
     }
 }
 
-interface Posts{
+interface Post{
     userId:number;
     id:number;
     title:string;
     body:string;
 }
 
-interface Comments{
+interface Comment{
     postId:number;
     id:number;
     name:string;
@@ -51,7 +51,6 @@ const fetchAllUsers = async () =>{
     const myResponse = await fetch("https://jsonplaceholder.typicode.com/users");
     if(myResponse.ok){
         userData = await myResponse.json();
-
         // iterating through userData
         userData.forEach((user) =>{
             // creating option element
@@ -64,14 +63,15 @@ const fetchAllUsers = async () =>{
         // call the function b to fetch user posts and comments
         selectUser.value = '1';
         fetchUserPosts(1);
+        displayUseDetails(1);
     }
 
-}
+};
 
 // async function to fetch user posts
-let myData:Posts[];
+let myData:Post[];
 const fetchUserPosts = async (userId:number) =>{
-    const response = await fetch("https://jsonplaceholder.typicode.com/posts");
+    const response = await fetch(`https://jsonplaceholder.typicode.com/posts?userId=${userId}`);
     if(response.ok){
         myData = await response.json();
         userPosts.innerHTML = '';
@@ -82,18 +82,17 @@ const fetchUserPosts = async (userId:number) =>{
             const liPostElement = document.createElement("li");
             liPostElement.textContent = `${post.title} - ${post.body}`;
             userPosts.appendChild(liPostElement);
-            // userComments.appendChild(liPostElement);
 
             // when you click a post then load comments of that post
             liPostElement.addEventListener('click', () =>{
-                fetchUserComments(myData[0].id);
+                fetchUserComments(post.id);
             })
         });
     }
 }
 
 // asynch function to fetch comments
-let comments: Comments[];
+let comments: Comment[];
 const fetchUserComments = async (postId:number) =>{
     const response = await fetch(`https://jsonplaceholder.typicode.com/comments?postId=${postId}`);
     if(response.ok){
@@ -105,39 +104,39 @@ const fetchUserComments = async (postId:number) =>{
             const liCommentElement = document.createElement("li");
             liCommentElement.textContent = `${comment.email} ${comment.body}`;
             userComments.appendChild(liCommentElement);
-        })
+        });
     }
-}
+};
 
 
 // function to display user details
-
 const displayUseDetails = (userId:number) =>{
     // loop through users array to find user with matching id
     const user = userData.find(user => user.id === userId);
     if(user){
-        const userLiElement = document.createElement("li");
-
+        userDetails.innerHTML = '';
         const details = [
             `${user.name}`,
             `${user.username}`,
             `${user.email}`,
-            `${user.company}`,
+            `${user.company.name}`,
         ]
-
+        
         // iterate through details array
         details.forEach((detail) =>{
+            const userLiElement = document.createElement("li");
             userLiElement.textContent = detail;
             userDetails.appendChild(userLiElement);
-        })
+        });
     }
-}
+};
 
 // add eventListener for select dropdown (change)
 selectUser.addEventListener('change', () =>{
     const selectedUserId  = parseInt(selectUser.value);
     fetchUserPosts(selectedUserId);
-})
+    displayUseDetails(selectedUserId);
+});
 
 // load the fetchAllUsers() function
 fetchAllUsers();
